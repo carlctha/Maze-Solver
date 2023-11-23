@@ -1,27 +1,77 @@
 import pygame
+from collections import deque
 
 
-def create_maze(maze_map, screen):
+def breadth_first_search(maze_map, starting_node):
+    start_cell = starting_node
+    visited = [start_cell]
+    queue = deque([start_cell])
+    paths = {}
+    shortest_path = []
+    goal_cell = (0, 0)
+
+    while len(queue) > 0:
+        curr_cell = queue.popleft()
+        directions = [
+        (curr_cell[0] - 1, curr_cell[1]), (curr_cell[0], curr_cell[1] - 1),
+        (curr_cell[0] + 1, curr_cell[1]), (curr_cell[0], curr_cell[1] + 1),
+        ]
+        for cell in directions:
+            if(
+                0 <= cell[0] < len(maze_map) and
+                0 <= cell[1] < len(maze_map[0]) and
+                (maze_map[cell[1]][cell[0]] == 0 or maze_map[cell[1]][cell[0]] == 3) and
+                cell not in visited
+            ):
+                queue.append(cell)
+                visited.append(cell)
+                paths[cell] = curr_cell
+        if curr_cell == goal_cell:
+            break
+
+    while goal_cell != start_cell:
+        shortest_path.append(goal_cell)
+        goal_cell = paths[goal_cell]
+    shortest_path.append(goal_cell)
+    
+    return shortest_path
+
+
+
+def draw_maze(maze_map, screen):
     CELL_SIZE = 100
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     YELLOW = (255, 255, 0)
+    GREEN = (0, 255, 0)
+    RED = (255, 0, 0)
 
     for row in range(len(maze_map)):
             for col in range(len(maze_map[row])):
-                color = WHITE if maze_map[row][col] == 0 else BLACK
-                pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                if maze_map[row][col] == 2:
+                    color = GREEN
+                    pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                    starting_node = (row, col)
 
-                pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, row * CELL_SIZE), ((col + 1) * CELL_SIZE, row * CELL_SIZE))
-                pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, (row + 1) * CELL_SIZE), ((col + 1) * CELL_SIZE, (row + 1) * CELL_SIZE))
+                elif maze_map[row][col] == 3:
+                    color = RED
+                    pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                else:
+                    color = WHITE if maze_map[row][col] == 0 else BLACK
+                    pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-                pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, row * CELL_SIZE), (col * CELL_SIZE, (row + 1) * CELL_SIZE))
-                pygame.draw.line(screen, YELLOW, ((col + 1) * CELL_SIZE, row * CELL_SIZE), ((col + 1) * CELL_SIZE, (row + 1) * CELL_SIZE))
+                    pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, row * CELL_SIZE), ((col + 1) * CELL_SIZE, row * CELL_SIZE))
+                    pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, (row + 1) * CELL_SIZE), ((col + 1) * CELL_SIZE, (row + 1) * CELL_SIZE))
+
+                    pygame.draw.line(screen, YELLOW, (col * CELL_SIZE, row * CELL_SIZE), (col * CELL_SIZE, (row + 1) * CELL_SIZE))
+                    pygame.draw.line(screen, YELLOW, ((col + 1) * CELL_SIZE, row * CELL_SIZE), ((col + 1) * CELL_SIZE, (row + 1) * CELL_SIZE))
+
+    return starting_node
 
 
 def main(maze_map):
-    WIDTH, HEIGHT = 700, 700
-
+    WIDTH, HEIGHT = 500, 500
+    clock = pygame.time.Clock()
     pygame.init() 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Maze")
@@ -32,12 +82,16 @@ def main(maze_map):
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and pygame.key == pygame.K_ESCAPE):
                 is_running = False
         
-        create_maze(maze_map, screen)
-
+        starting_node = draw_maze(maze_map, screen)
+        path = breadth_first_search(maze_map1, starting_node)
+        print(path)
+        """ print(path) """
+    
         pygame.display.flip()
+        clock.tick(30)
 
 
-maze_map = [
+maze_map0 = [
         [0, 0, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0],
         [1, 0, 1, 0, 1, 0, 1],
@@ -48,5 +102,16 @@ maze_map = [
 ]
 
 
+maze_map1 = [
+    [3, 0, 0, 0, 1],
+    [0, 1, 0, 1, 1],
+    [0, 0, 0, 0, 1],
+    [0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 2]
+]
+
+
 if __name__ == "__main__":
-    main(maze_map)
+    main(maze_map1)
+    """ path = breadth_first_search(maze_map1, (4, 4))
+    print(path) """
