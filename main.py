@@ -4,8 +4,8 @@ import time
 from typing import List, Tuple
 
 
-def draw_shortest_path(shortest_path, screen):
-    CELL_SIZE = 100
+def draw_shortest_path(shortest_path, screen, cell_size):
+    CELL_SIZE = cell_size
     YELLOW = (255, 255, 0)
     for i in range(len(shortest_path)):
         row = shortest_path[-i][0]
@@ -52,8 +52,8 @@ def breadth_first_search(maze_map, starting_node) -> List:
 
 
 
-def draw_maze(maze_map, screen) -> Tuple:
-    CELL_SIZE = 100
+def draw_maze(maze_map, screen, cell_size) -> Tuple:
+    CELL_SIZE = cell_size
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     YELLOW = (255, 255, 0)
@@ -85,6 +85,7 @@ def draw_maze(maze_map, screen) -> Tuple:
 
 def main(maze_map):
     WIDTH, HEIGHT = 500, 500
+    CELL_SIZE = WIDTH / len(maze_map)
     clock = pygame.time.Clock()
     pygame.init() 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -96,22 +97,22 @@ def main(maze_map):
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and pygame.key == pygame.K_ESCAPE):
                 is_running = False
         
-        starting_node = draw_maze(maze_map, screen)
+        starting_node = draw_maze(maze_map, screen, CELL_SIZE)
         path = breadth_first_search(maze_map, starting_node)
-        draw_shortest_path(path, screen)
+        draw_shortest_path(path, screen, CELL_SIZE)
     
         pygame.display.flip()
         clock.tick(30)
 
 
 maze_map0 = [
-        [0, 0, 1, 1, 1, 1, 1],
+        [3, 0, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0],
         [1, 0, 1, 0, 1, 0, 1],
         [1, 0, 1, 0, 1, 0, 0],
         [1, 0, 1, 0, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 1, 0]
+        [1, 1, 1, 1, 1, 1, 2]
 ]
 
 
@@ -125,4 +126,4 @@ maze_map1 = [
 
 
 if __name__ == "__main__":
-    main(maze_map1)
+    main(maze_map0)
