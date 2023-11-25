@@ -1,22 +1,24 @@
 import pygame
-from collections import deque
-import time
+from collections import deque   
 from typing import List, Tuple
 
 
 def draw_shortest_path(shortest_path, screen, cell_size):
     YELLOW = (255, 255, 0)
+    print(shortest_path)
     for i in range(len(shortest_path)):
+        if i == 0:
+            continue
         row = shortest_path[-i][0]
         col = shortest_path[-i][1]
         pygame.draw.rect(screen, YELLOW, (row * cell_size, col * cell_size, cell_size, cell_size))
-        time.sleep(0.1)
+        pygame.time.wait(100)
         pygame.display.update()
 
 
 def draw_bfs(cell, cell_size, screen, color):
     pygame.draw.rect(screen, color, (cell[0] * cell_size, cell[1] * cell_size, cell_size, cell_size))
-    time.sleep(0.05)
+    pygame.time.wait(50)
     pygame.display.update()
 
 def breadth_first_search(maze_map, starting_node, cell_size, screen, color) -> List:
@@ -43,6 +45,8 @@ def breadth_first_search(maze_map, starting_node, cell_size, screen, color) -> L
                 queue.append(cell)
                 visited.append(cell)
                 paths[cell] = curr_cell
+                if cell == goal_cell:
+                    continue
                 draw_bfs(cell, cell_size, screen, color)
         if curr_cell == goal_cell:
             break
@@ -104,8 +108,12 @@ def main(maze_map):
         starting_node = draw_maze(maze_map, screen, CELL_SIZE)
         path = breadth_first_search(maze_map, starting_node, CELL_SIZE, screen, LIGHT_BLUE)
         draw_shortest_path(path, screen, CELL_SIZE)
-    
         pygame.display.flip()
+
+        if path[0] == (0,0):
+            pygame.time.wait(10000)
+            is_running = False
+
         clock.tick(30)
 
 
