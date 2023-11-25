@@ -31,15 +31,15 @@ def breadth_first_search(maze_map, starting_node, cell_size, screen, color) -> L
 
     while len(queue) > 0:
         curr_cell = queue.popleft()
-        directions = [
+        neighbours = [
         (curr_cell[0] - 1, curr_cell[1]), (curr_cell[0], curr_cell[1] - 1),
         (curr_cell[0] + 1, curr_cell[1]), (curr_cell[0], curr_cell[1] + 1),
         ]
-        for cell in directions:
+        for cell in neighbours:
             if(
                 0 <= cell[0] < len(maze_map) and
                 0 <= cell[1] < len(maze_map[0]) and
-                (maze_map[cell[0]][cell[1]] == 0 or maze_map[cell[0]][cell[1]] == 3) and
+                (maze_map[cell[1]][cell[0]] == 0 or maze_map[cell[1]][cell[0]] == 3) and
                 cell not in visited
             ):
                 queue.append(cell)
@@ -70,15 +70,17 @@ def draw_maze(maze_map, screen, cell_size) -> Tuple:
 
     for row in range(len(maze_map)):
             for col in range(len(maze_map[row])):
-                if maze_map[row][col] == 2:
+                print(maze_map[row][col])
+                if maze_map[col][row] == 2:
                     color = GREEN
                     pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
-                    starting_node = (row, col)
+                    pygame.time.wait(1000)
+                    starting_node = (col, row)
                 elif maze_map[row][col] == 3:
                     color = RED
                     pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
                 else:
-                    color = WHITE if maze_map[row][col] == 0 else BLACK
+                    color = WHITE if maze_map[col][row] == 0 else BLACK
                     pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
 
                     pygame.draw.line(screen, YELLOW, (row * cell_size, col * cell_size), ((row + 1) * cell_size, col * cell_size))
@@ -111,7 +113,7 @@ def main(maze_map):
         pygame.display.flip()
 
         if path[0] == (0,0):
-            pygame.time.wait(10000)
+            pygame.time.wait(5000)
             is_running = False
 
         clock.tick(30)
