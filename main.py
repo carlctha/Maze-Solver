@@ -1,164 +1,119 @@
 import pygame
 from collections import deque   
 from typing import List, Tuple
+import maps
 
 
-def draw_shortest_path(shortest_path, screen, cell_size):
-    YELLOW = (255, 255, 0)
-    print(shortest_path)
-    for i in range(len(shortest_path)):
-        if i == 0:
-            continue
-        row = shortest_path[-i][0]
-        col = shortest_path[-i][1]
-        pygame.draw.rect(screen, YELLOW, (row * cell_size, col * cell_size, cell_size, cell_size))
-        pygame.time.wait(100)
+class MazeSolver:
+    def __init__(self, maze_map):
+        self.WIDTH = 500
+        self.HEIGHT = 500
+        self.maze_map = maze_map
+        self.CELL_SIZE = self.WIDTH / len(self.maze_map)
+        self.WHITE = (255, 255, 255)
+        self.BLACK = (0, 0, 0)
+        self.YELLOW = (255, 255, 0)
+        self.GREEN = (0, 255, 0)
+        self.RED = (255, 0, 0)
+        self.LIGHT_BLUE = (173, 216, 230)
+        self.is_running = True
+
+    def draw_shortest_path(self, shortest_path, screen):
+        for i in range(len(shortest_path)):
+            if i == 0:
+                continue
+            row = shortest_path[-i][0]
+            col = shortest_path[-i][1]
+            pygame.draw.rect(screen, self.YELLOW, (row * self.CELL_SIZE, col * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE))
+            pygame.time.wait(10)
+            pygame.display.update()
+
+    def draw_bfs(self, cell, screen):
+        pygame.draw.rect(screen, self.LIGHT_BLUE, (cell[0] * self.CELL_SIZE, cell[1] * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE))
+        pygame.time.wait(5)
         pygame.display.update()
 
+    def breadth_first_search(self, screen) -> List:
+        start_cell = (len(self.maze_map) - 1, len(self.maze_map[0]) - 1)
+        visited = [start_cell]
+        queue = deque([start_cell])
+        paths = {}
+        shortest_path = []
+        goal_cell = (0, 0)
 
-def draw_bfs(cell, cell_size, screen, color):
-    pygame.draw.rect(screen, color, (cell[0] * cell_size, cell[1] * cell_size, cell_size, cell_size))
-    pygame.time.wait(50)
-    pygame.display.update()
+        while len(queue) > 0:
+            curr_cell = queue.popleft()
+            neighbours = [
+            (curr_cell[0] - 1, curr_cell[1]), (curr_cell[0], curr_cell[1] - 1),
+            (curr_cell[0] + 1, curr_cell[1]), (curr_cell[0], curr_cell[1] + 1),
+            ]
+            for cell in neighbours:
+                if(
+                    0 <= cell[0] < len(self.maze_map) and
+                    0 <= cell[1] < len(self.maze_map[0]) and
+                    (self.maze_map[cell[1]][cell[0]] == 0 or self.maze_map[cell[1]][cell[0]] == 3) and
+                    cell not in visited
+                ):
+                    queue.append(cell)
+                    visited.append(cell)
+                    paths[cell] = curr_cell
+                    if cell == goal_cell:
+                        continue
+                    self.draw_bfs(cell, screen)
+            if curr_cell == goal_cell:
+                break
 
-def breadth_first_search(maze_map, starting_node, cell_size, screen, color) -> List:
-    start_cell = starting_node
-    visited = [start_cell]
-    queue = deque([start_cell])
-    paths = {}
-    shortest_path = []
-    goal_cell = (0, 0)
-
-    while len(queue) > 0:
-        curr_cell = queue.popleft()
-        neighbours = [
-        (curr_cell[0] - 1, curr_cell[1]), (curr_cell[0], curr_cell[1] - 1),
-        (curr_cell[0] + 1, curr_cell[1]), (curr_cell[0], curr_cell[1] + 1),
-        ]
-        for cell in neighbours:
-            if(
-                0 <= cell[0] < len(maze_map) and
-                0 <= cell[1] < len(maze_map[0]) and
-                (maze_map[cell[1]][cell[0]] == 0 or maze_map[cell[1]][cell[0]] == 3) and
-                cell not in visited
-            ):
-                queue.append(cell)
-                visited.append(cell)
-                paths[cell] = curr_cell
-                if cell == goal_cell:
-                    continue
-                draw_bfs(cell, cell_size, screen, color)
-        if curr_cell == goal_cell:
-            break
-
-    while goal_cell != start_cell:
-        shortest_path.append(goal_cell)
-        goal_cell = paths[goal_cell]
-    
-    shortest_path.append(starting_node)
-    
-    return shortest_path
-
-
-
-def draw_maze(maze_map, screen, cell_size) -> Tuple:
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-    YELLOW = (255, 255, 0)
-    GREEN = (0, 255, 0)
-    RED = (255, 0, 0)
-
-    for row in range(len(maze_map)):
-            for col in range(len(maze_map[row])):
-                print(maze_map[row][col])
-                if maze_map[col][row] == 2:
-                    color = GREEN
-                    pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
-                    pygame.time.wait(1000)
-                    starting_node = (col, row)
-                elif maze_map[row][col] == 3:
-                    color = RED
-                    pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
-                else:
-                    color = WHITE if maze_map[col][row] == 0 else BLACK
-                    pygame.draw.rect(screen, color, (row * cell_size, col * cell_size, cell_size, cell_size))
-
-                    pygame.draw.line(screen, YELLOW, (row * cell_size, col * cell_size), ((row + 1) * cell_size, col * cell_size))
-                    pygame.draw.line(screen, YELLOW, (row * cell_size, (col + 1) * cell_size), ((row + 1) * cell_size, (col + 1) * cell_size))
-
-                    pygame.draw.line(screen, YELLOW, (row * cell_size, col * cell_size), (row * cell_size, (col + 1) * cell_size))
-                    pygame.draw.line(screen, YELLOW, ((row + 1) * cell_size, col * cell_size), ((row + 1) * cell_size, (col + 1) * cell_size))
-
-    return starting_node
-
-
-def main(maze_map):
-    WIDTH, HEIGHT = 500, 500
-    CELL_SIZE = WIDTH / len(maze_map)
-    LIGHT_BLUE = (173, 216, 230)
-    clock = pygame.time.Clock()
-    pygame.init() 
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Maze")
-    is_running = True
-
-    while is_running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and pygame.key == pygame.K_ESCAPE):
-                is_running = False
+        while goal_cell != start_cell:
+            shortest_path.append(goal_cell)
+            goal_cell = paths[goal_cell]
         
-        starting_node = draw_maze(maze_map, screen, CELL_SIZE)
-        path = breadth_first_search(maze_map, starting_node, CELL_SIZE, screen, LIGHT_BLUE)
-        draw_shortest_path(path, screen, CELL_SIZE)
-        pygame.display.flip()
+        shortest_path.append(start_cell)
+        
+        return shortest_path
 
-        if path[0] == (0,0):
-            pygame.time.wait(5000)
-            is_running = False
+    def draw_maze(self, screen) -> Tuple:
+        for row in range(len(self.maze_map)):
+                for col in range(len(self.maze_map[row])):
+                    if self.maze_map[col][row] == 2:
+                        color = self.GREEN
+                        pygame.draw.rect(screen, color, (row * self.CELL_SIZE, col * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE))
+                    elif self.maze_map[row][col] == 3:
+                        color = self.RED
+                        pygame.draw.rect(screen, color, (row * self.CELL_SIZE, col * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE))
+                    else:
+                        color = self.WHITE if self.maze_map[col][row] == 0 else self.BLACK
+                        pygame.draw.rect(screen, color, (row * self.CELL_SIZE, col * self.CELL_SIZE, self.CELL_SIZE, self.CELL_SIZE))
+                        
+                        color = self.YELLOW
+                        pygame.draw.line(screen, color, (row * self.CELL_SIZE, col * self.CELL_SIZE), ((row + 1) * self.CELL_SIZE, col * self.CELL_SIZE))
+                        pygame.draw.line(screen, color, (row * self.CELL_SIZE, (col + 1) * self.CELL_SIZE), ((row + 1) * self.CELL_SIZE, (col + 1) * self.CELL_SIZE))
 
-        clock.tick(30)
+                        pygame.draw.line(screen, color, (row * self.CELL_SIZE, col * self.CELL_SIZE), (row * self.CELL_SIZE, (col + 1) * self.CELL_SIZE))
+                        pygame.draw.line(screen, color, ((row + 1) * self.CELL_SIZE, col * self.CELL_SIZE), ((row + 1) * self.CELL_SIZE, (col + 1) * self.CELL_SIZE))
 
+    def main(self):
+        clock = pygame.time.Clock()
+        pygame.init() 
+        screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption("Maze")
 
-maze_map0 = [
-        [3, 0, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 0],
-        [1, 0, 1, 0, 1, 0, 1],
-        [1, 0, 1, 0, 1, 0, 0],
-        [1, 0, 1, 0, 1, 1, 1],
-        [1, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 1, 2]
-]
+        while self.is_running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and pygame.key == pygame.K_ESCAPE):
+                    self.is_running = False
+            
+            self.draw_maze(screen)
+            path = self.breadth_first_search(screen)
+            self.draw_shortest_path(path, screen)
+            pygame.display.flip()
 
+            if path[0] == (0,0):
+                pygame.time.wait(4000)
+                self.is_running = False
 
-maze_map1 = [
-    [3, 0, 0, 0, 1],
-    [0, 1, 0, 1, 1],
-    [0, 0, 0, 0, 1],
-    [0, 1, 1, 0, 0],
-    [0, 0, 0, 1, 2]
-]
-
-
-maze_map2 = [
-    [3, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0],
-    [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1],
-    [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 2],
-]
+            clock.tick(30)
 
 
 if __name__ == "__main__":
-    main(maze_map2)
+    solver = MazeSolver(maps.maze_map2)
+    solver.main()
